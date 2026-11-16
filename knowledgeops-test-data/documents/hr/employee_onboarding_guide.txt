@@ -1,0 +1,75 @@
+================================================================================
+        Acme Technologies - New Hire Onboarding and Integration Playbook        
+================================================================================
+
+--------------------------------------------------------------------------------
+DOCUMENT METADATA & ADMINISTRATIVE GOVERNANCE
+--------------------------------------------------------------------------------
+Document ID        : DOC-HR-ONB-001
+Logical Document ID: DOC-LOG-HR-ONB-001
+Organization       : acme-tech-001 (Acme Technologies)
+Department         : Human Resources
+Visibility Scope   : ORGANIZATION_WIDE
+Owner Role         : HR Manager
+Allowed Roles      : Employee, Department Manager, HR Manager, Finance Manager, IT Manager, Engineering Manager, Organization Admin
+Version / Lifecycle: v1.0 (ACTIVE)
+Effective From     : 2026-01-01
+Effective Until    : Present (Active)
+Last Reviewed At   : 2026-01-18
+Conflict Group     : None
+Adversarial Target : False
+Description        : Structured 30-60-90 day orientation framework, buddy system, workstation provisioning, and compliance milestones for new hires.
+--------------------------------------------------------------------------------
+
+1. WELCOME TO ACME TECHNOLOGIES
+-------------------------------
+Welcome to the Acme Technologies team! This playbook is your comprehensive guide through your first 90 days as a new team member. We have designed this structured onboarding framework to provide you with the tools, domain knowledge, peer connections, and cultural context necessary to achieve personal growth and engineering impact.
+
+2. DAY ONE ESSENTIALS AND HARDWARE PROVISIONING
+-----------------------------------------------
+First Day Schedule and Welcome Itinerary:
+- 09:30 AM: Arrival at Corporate Reception; identity verification and issuance of electronic RFID security access badge.
+- 10:00 AM: IT Provisioning Lab: Laptop unboxing, corporate account activation, initial password setup, FIDO2/TOTP MFA registration, and VPN profile validation.
+- 11:30 AM: HR Orientation Session: Submission of statutory forms (PF Form 11, Gratuity Nomination), corporate salary bank account linkage, and emergency contact verification.
+- 01:00 PM: Welcome Lunch hosted by your Department Manager and your assigned Peer Buddy at the campus cafeteria.
+- 02:30 PM: Desk setup, peripheral allocation, Slack workspace introduction, and initial 1:1 check-in with your Department Manager.
+
+3. THE 30-60-90 DAY PROGRESSION ROADMAP
+---------------------------------------
+PHASE 1: DAYS 1 TO 30 — ABSORB AND CONTEXTUALIZE
+- Goal: Understand corporate culture, architectural principles, internal tooling, and team rituals.
+- Milestone 1: Complete 100% of mandatory compliance e-learning modules: Code of Conduct, POSH, and Information Classification.
+- Milestone 2: Review team backlog, read architecture decision records (ADRs), and observe sprint planning ceremonies.
+- Milestone 3: Complete first minor documentation update or bugfix commit under buddy supervision.
+- Day 30 Review: Formal 30-minute check-in with your HR Business Partner.
+
+PHASE 2: DAYS 31 TO 60 — COLLABORATE AND EXECUTE
+- Goal: Deliver scoped functional contributions and integrate into team workflows.
+- Milestone 1: Take ownership of sprint backlog tickets and submit production-ready pull requests or operational artifacts.
+- Milestone 2: Participate actively in architectural design discussions, peer code reviews, or finance audits.
+- Day 60 Review: Mid-probation performance calibration with your Department Manager.
+
+PHASE 3: DAYS 61 TO 90 — DELIVER AND SCALE
+- Goal: Independent project ownership, operational self-sufficiency, and cross-functional leadership.
+- Milestone 1: Deliver an end-to-end feature release, operational audit, or automation tool with minimal supervision.
+- Milestone 2: Present a 30-minute knowledge-sharing session during departmental tech talks or engineering all-hands.
+- Day 90 Review: Formal Probation Assessment review for permanent confirmation of employment.
+
+4. THE PEER BUDDY PROGRAM
+-------------------------
+Every incoming team member is paired with an experienced colleague from a related squad who serves as their Peer Buddy for 90 days.
+Responsibilities of the Peer Buddy:
+- Act as an informal guide for workplace customs, informal tooling shortcuts, and campus logistics.
+- Schedule weekly 30-minute informal coffee touchpoints to answer questions and resolve bottlenecks.
+- Note: Buddies do not conduct formal performance evaluations; their role is strictly supportive and mentorship-focused.
+
+5. CRITICAL DIRECTORY AND ESCALATION CONTACTS
+---------------------------------------------
+- HR Operations Desk: hrops@acme-technologies.local (Ext. 2101)
+- IT Helpdesk & Hardware Support: ithelpdesk@acme-technologies.local (Ext. 4357)
+- Facilities & Physical Badging: facilities@acme-technologies.local (Ext. 1100)
+- Document ID: DOC-HR-ONB-001 | Version: 1.0 | Owner: HR Manager | Effective: 2026-01-01
+
+================================================================================
+END OF DOCUMENT: DOC-HR-ONB-001 | ACME TECHNOLOGIES CONFIDENTIAL
+================================================================================

@@ -1,0 +1,29 @@
+{
+  "conflict_groups": [
+    {
+      "conflict_group_id": "CONFLICT-FIN-MEAL-001",
+      "title": "Domestic Travel Daily Meal Allowance Discrepancy",
+      "description": "Conflict between Daily Meal Allowance Policy and General Expense Claim Procedure regarding the reimbursable daily food allowance cap for domestic business travel.",
+      "conflicting_documents": [
+        {
+          "document_id": "DOC-FIN-MEAL-001",
+          "filename": "meal_allowance_policy.pdf",
+          "stated_value": "\u20b91,200 per calendar day (Breakfast \u20b9250, Lunch \u20b9450, Dinner \u20b9500; non-itemized receipts acceptable within cap)",
+          "section": "Section 2.1: Domestic Business Travel Meal Per Diem Entitlement"
+        },
+        {
+          "document_id": "DOC-FIN-EXP-001",
+          "filename": "expense_claim_procedure.txt",
+          "stated_value": "\u20b9800 per calendar day (Aggregate ceiling across all meals; claims above \u20b9800 rejected by audit)",
+          "section": "Section 3.4: Travel Meal Reimbursement Limits [Audit Mandate]"
+        }
+      ],
+      "expected_rag_behavior": {
+        "must_detect_conflict": true,
+        "must_cite_both_sources": true,
+        "must_avoid_unilateral_choice": true,
+        "resolution_guidance": "The RAG pipeline must present both conflicting policy figures (\u20b91,200 vs \u20b9800), cite both documents with their sections, and advise the employee to seek written clarification from the Finance Manager rather than asserting one figure as definitively correct."
+      }
+    }
+  ]
+}

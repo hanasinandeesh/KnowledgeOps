@@ -1,0 +1,77 @@
+================================================================================
+  Acme Technologies - Information Classification and Data Handling Guidelines   
+================================================================================
+
+--------------------------------------------------------------------------------
+DOCUMENT METADATA & ADMINISTRATIVE GOVERNANCE
+--------------------------------------------------------------------------------
+Document ID        : DOC-ORG-DCL-001
+Logical Document ID: DOC-LOG-ORG-DCL-001
+Organization       : acme-tech-001 (Acme Technologies)
+Department         : Organization
+Visibility Scope   : ORGANIZATION_WIDE
+Owner Role         : IT Manager
+Allowed Roles      : Employee, Department Manager, HR Manager, Finance Manager, IT Manager, Engineering Manager, Organization Admin
+Version / Lifecycle: v1.0 (ACTIVE)
+Effective From     : 2026-01-01
+Effective Until    : Present (Active)
+Last Reviewed At   : 2026-01-12
+Conflict Group     : None
+Adversarial Target : False
+Description        : Enterprise four-tier data classification model specifying storage, transmission, encryption, and destruction standards for corporate assets.
+--------------------------------------------------------------------------------
+
+1. PURPOSE AND APPLICABILITY
+----------------------------
+This document establishes the official four-tier data classification taxonomy and baseline technical handling controls for all digital, printed, and intellectual assets owned, processed, or hosted by Acme Technologies. Every employee, software engineer, contractor, and systems administrator must classify assets correctly, apply appropriate access barriers, and adhere to mandatory encryption and disposal standards across their lifecycle.
+
+2. THE FOUR-TIER DATA CLASSIFICATION TAXONOMY
+---------------------------------------------
+Acme Technologies classifies all corporate information into four distinct sensitivity tiers:
+
+TIER 1: PUBLIC
+- Definition: Information formally cleared and authorized for unrestricted public distribution.
+- Examples: Public marketing whitepapers, corporate website content, press releases, recruitment job descriptions, open-source SDKs.
+- Protection Level: Integrity checks; no access restrictions or confidentiality barriers required.
+
+TIER 2: INTERNAL
+- Definition: Operational data intended solely for Acme Technologies personnel and vetted contractors. Unauthorized release causes minor operational disruption.
+- Examples: General internal wiki pages, employee telephone directories, cafeteria menus, sprint backlog tickets, internal team newsletters.
+- Protection Level: Corporate domain authentication required; transmission outside the corporate domain is prohibited.
+
+TIER 3: CONFIDENTIAL
+- Definition: Sensitive commercial, technical, client, or financial information. Unauthorized disclosure could cause financial injury, client loss, or legal liability.
+- Examples: Proprietary source code repositories, client master service agreements (MSAs), SOC2 Type II audit reports, unreleased product architecture blueprints, vendor pricing schedules.
+- Protection Level: AES-256 storage encryption; TLS 1.3 in-transit; strict role-based access control (RBAC); export watermarking.
+
+TIER 4: RESTRICTED
+- Definition: Highly sensitive assets, regulatory secrets, or personal data whose compromise would cause catastrophic harm, legal prosecution, or severe financial ruin.
+- Examples: Individual employee salary files, executive equity allocations, cryptographic private keys, customer database credentials, M&A due diligence filings, employee medical records.
+- Protection Level: Explicit individual named access grants; multi-factor re-authentication; strict ban on external emailing or portable drives; immutable tamper-evident audit logging.
+
+3. ENCRYPTION, TRANSMISSION, AND ACCESS CONTROLS
+------------------------------------------------
+Cryptographic Storage Baseline:
+- All storage volumes, cloud object buckets (S3), and database clusters hosting Confidential or Restricted data must utilize AES-256 encryption at rest.
+- All company-issued laptop drives must enforce hardware-backed full-disk encryption (BitLocker or FileVault) with centrally escrowed recovery keys.
+
+Network Transmission Baseline:
+- Unencrypted legacy protocols (HTTP, FTP, Telnet) are blocked at the perimeter and internal switches.
+- Web interfaces, APIs, and microservices must mandate TLS 1.3 (with fallback to TLS 1.2 minimum).
+- Restricted data may never be transmitted via consumer messaging platforms (WhatsApp, Telegram) or personal email accounts.
+
+4. SANITIZATION AND DISPOSAL PROCEDURES
+---------------------------------------
+When records or storage media reach the conclusion of their statutory retention period:
+- Digital Records: Cryptographic erasure or multi-pass overwrite conforming to NIST SP 800-88 Rev 1 Guidelines for Media Sanitization.
+- Physical Paper Documents: Cross-cut shredding with particle surface area less than 160 mm² (DIN 66399 Level P-4 minimum).
+- Decommissioned Storage Drives: Physical degaussing followed by mechanical puncture and disintegration by certified e-waste vendors, documented by formal destruction certificates.
+
+5. GOVERNANCE, AUDIT, AND COMPLIANCE MONITORING
+-----------------------------------------------
+Document ID: DOC-ORG-DCL-001 | Version: 1.0 | Owner: IT Manager | Effective: 2026-01-01
+Compliance Audits: The IT Security Governance Committee conducts quarterly automated audits against SOC2 Type II, ISO 27001, and GDPR technical controls. Data custodians failing to apply correct labels or access controls face mandatory disciplinary review.
+
+================================================================================
+END OF DOCUMENT: DOC-ORG-DCL-001 | ACME TECHNOLOGIES CONFIDENTIAL
+================================================================================

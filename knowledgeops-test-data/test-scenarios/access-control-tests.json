@@ -1,0 +1,133 @@
+{
+  "organization_id": "acme-tech-001",
+  "personas": [
+    {
+      "persona_id": "PER-ENG-EMP-01",
+      "name": "Anita Sharma",
+      "role": "Employee",
+      "department": "Engineering",
+      "organization_id": "acme-tech-001",
+      "description": "Software engineer in the Engineering department."
+    },
+    {
+      "persona_id": "PER-FIN-EMP-02",
+      "name": "Vikram Sethi",
+      "role": "Employee",
+      "department": "Finance",
+      "organization_id": "acme-tech-001",
+      "description": "Financial analyst in the Finance department."
+    },
+    {
+      "persona_id": "PER-ENG-MGR-03",
+      "name": "Priya Nair",
+      "role": "Engineering Manager",
+      "department": "Engineering",
+      "organization_id": "acme-tech-001",
+      "description": "Manager of software engineering squad."
+    },
+    {
+      "persona_id": "PER-FIN-MGR-04",
+      "name": "Rahul Verma",
+      "role": "Finance Manager",
+      "department": "Finance",
+      "organization_id": "acme-tech-001",
+      "description": "Head of corporate finance and treasury."
+    },
+    {
+      "persona_id": "PER-HR-MGR-05",
+      "name": "Sunita Rao",
+      "role": "HR Manager",
+      "department": "Human Resources",
+      "organization_id": "acme-tech-001",
+      "description": "HR Director authorized to view confidential compensation structures."
+    },
+    {
+      "persona_id": "PER-IT-MGR-06",
+      "name": "Karthik Iyer",
+      "role": "IT Manager",
+      "department": "Information Technology",
+      "organization_id": "acme-tech-001",
+      "description": "Head of IT infrastructure and cybersecurity operations."
+    },
+    {
+      "persona_id": "PER-ORG-ADM-07",
+      "name": "Devendra Patil",
+      "role": "Organization Admin",
+      "department": "Information Technology",
+      "organization_id": "acme-tech-001",
+      "description": "System administrator with platform configuration rights."
+    }
+  ],
+  "test_cases": [
+    {
+      "test_case_id": "ACT-01",
+      "persona_id": "PER-ENG-EMP-01",
+      "target_document_id": "DOC-ORG-HBK-001",
+      "expected_access": "ALLOW",
+      "reason": "Organization-wide document is accessible to all verified employees."
+    },
+    {
+      "test_case_id": "ACT-02",
+      "persona_id": "PER-ENG-EMP-01",
+      "target_document_id": "DOC-ENG-GIT-001",
+      "expected_access": "ALLOW",
+      "reason": "Engineering employee can access Engineering department-specific documents."
+    },
+    {
+      "test_case_id": "ACT-03",
+      "persona_id": "PER-ENG-EMP-01",
+      "target_document_id": "DOC-FIN-PRO-001",
+      "expected_access": "DENY",
+      "reason": "Engineering employee cannot access Finance department-specific procurement guidelines."
+    },
+    {
+      "test_case_id": "ACT-04",
+      "persona_id": "PER-ENG-EMP-01",
+      "target_document_id": "DOC-HR-SAL-001",
+      "expected_access": "DENY",
+      "reason": "Ordinary employee cannot access RESTRICTED salary bands policy."
+    },
+    {
+      "test_case_id": "ACT-05",
+      "persona_id": "PER-ORG-ADM-07",
+      "target_document_id": "DOC-HR-SAL-001",
+      "expected_access": "DENY",
+      "reason": "Organization Admin does NOT automatically access RESTRICTED HR documents without explicit grant."
+    },
+    {
+      "test_case_id": "ACT-06",
+      "persona_id": "PER-HR-MGR-05",
+      "target_document_id": "DOC-HR-SAL-001",
+      "expected_access": "ALLOW",
+      "reason": "HR Manager role has explicit authorization for RESTRICTED HR compensation policy."
+    },
+    {
+      "test_case_id": "ACT-07",
+      "persona_id": "PER-FIN-EMP-02",
+      "target_document_id": "DOC-ENG-GIT-001",
+      "expected_access": "DENY",
+      "reason": "Finance employee cannot access Engineering department-specific documents."
+    },
+    {
+      "test_case_id": "ACT-08",
+      "persona_id": "PER-FIN-MGR-04",
+      "target_document_id": "DOC-FIN-PRO-001",
+      "expected_access": "ALLOW",
+      "reason": "Finance Manager has access to Finance department-specific documents."
+    },
+    {
+      "test_case_id": "ACT-09",
+      "persona_id": "PER-ENG-EMP-01",
+      "target_document_id": "DOC-IT-INC-001",
+      "expected_access": "DENY",
+      "reason": "Engineering employee cannot access IT department-specific incident procedures."
+    },
+    {
+      "test_case_id": "ACT-10",
+      "persona_id": "PER-IT-MGR-06",
+      "target_document_id": "DOC-IT-INC-001",
+      "expected_access": "ALLOW",
+      "reason": "IT Manager has access to IT department-specific incident procedures."
+    }
+  ]
+}

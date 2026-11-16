@@ -1,0 +1,64 @@
+================================================================================
+ Acme Technologies - General Employee Expense Claim and Reimbursement Procedure 
+================================================================================
+
+--------------------------------------------------------------------------------
+DOCUMENT METADATA & ADMINISTRATIVE GOVERNANCE
+--------------------------------------------------------------------------------
+Document ID        : DOC-FIN-EXP-001
+Logical Document ID: DOC-LOG-FIN-EXP-001
+Organization       : acme-tech-001 (Acme Technologies)
+Department         : Finance
+Visibility Scope   : ORGANIZATION_WIDE
+Owner Role         : Finance Manager
+Allowed Roles      : Employee, Department Manager, HR Manager, Finance Manager, IT Manager, Engineering Manager, Organization Admin
+Version / Lifecycle: v1.0 (ACTIVE)
+Effective From     : 2026-01-01
+Effective Until    : Present (Active)
+Last Reviewed At   : 2026-01-14
+Conflict Group     : CONFLICT-FIN-MEAL-001
+Adversarial Target : False
+Description        : Standard operating procedure for submitting out-of-pocket expenses. Contains meal reimbursement limit of Rs 800/day.
+--------------------------------------------------------------------------------
+
+1. PURPOSE AND SYSTEM OVERVIEW
+------------------------------
+This standard operating procedure governs the submission, audit, and settlement of all out-of-pocket business expenses incurred by employees of Acme Technologies during official business activities. All claims must be entered and tracked through the Acme Finance ERP Expense Portal. This document ensures corporate expenditure remains compliant with national tax codes and internal budget allocations.
+
+2. GENERAL INVOICE REQUIREMENTS AND DISBURSEMENT SCHEDULE
+---------------------------------------------------------
+General Filing Rules:
+- Tax Invoices: Legitimate digital tax invoices displaying vendor GSTIN, date, and invoice number are mandatory for all claims.
+- Digital Upload: Scanned receipts must be high-resolution PDFs or JPEG/PNG images with all line items clearly legible.
+- Disbursement Cycle: Verified claims are processed bi-weekly and credited directly to the employee's corporate payroll account on the 10th and 25th of each calendar month.
+- Currency Conversion: Expenses incurred during foreign assignments are settled using the official RBI reference exchange rate on the transaction date.
+
+3. SECTION 3.4: TRAVEL MEAL REIMBURSEMENT LIMITS [AUDIT MANDATE]
+----------------------------------------------------------------
+Mandatory Travel Meal Reimbursement Standard:
+- Domestic Travel Meal Cap: For all official domestic business travel, total employee meal reimbursement is strictly capped at ₹800 (INR) per person per calendar day.
+- The ₹800 daily cap represents the aggregate total reimbursable ceiling across all meals (breakfast, lunch, dinner) and incidental beverages combined.
+- Itemized Receipt Rule: Any individual meal receipt exceeding ₹200 (INR) must be supported by an itemized tax receipt specifying items consumed.
+- Audit Rejection Rule: The Finance Audit Team will reject any claim where daily meal receipts exceed ₹800 per day. Excess amounts above ₹800 are classified as personal expenses and will be disallowed or deducted from payroll.
+
+4. LOCAL COMMUTE AND MILEAGE REIMBURSEMENT
+------------------------------------------
+- Local City Travel: Employees traveling locally for client meetings may utilize auto-rickshaws or app-based ride-hailing services (Ola/Uber Mini or Prime Sedan).
+- Premium Vehicles: Premium vehicle categories (Uber Black, luxury SUVs) are strictly non-reimbursable without prior written VP-level authorization.
+- Personal Two-Wheeler / Four-Wheeler: Reimbursed at fixed rates of ₹5/km for two-wheelers and ₹10/km for personal cars, supported by toll receipts and odometer logs.
+
+5. NON-REIMBURSABLE EXPENSES CATALOG
+------------------------------------
+The following expenses are strictly non-reimbursable:
+- Personal grooming, spa, haircuts, and laundry services on trips shorter than 4 days.
+- Traffic violation citations, parking fines, and toll penalty surcharges.
+- Alcoholic beverages, mini-bar snacks, and in-flight entertainment purchases.
+- Expenses incurred on behalf of spouses or non-employee traveling companions.
+
+6. DOCUMENT GOVERNANCE AND CONFLICT REFERENCE
+---------------------------------------------
+Document ID: DOC-FIN-EXP-001 | Conflict Group: CONFLICT-FIN-MEAL-001 | Owner: Finance Manager | Effective: 2026-01-01
+
+================================================================================
+END OF DOCUMENT: DOC-FIN-EXP-001 | ACME TECHNOLOGIES CONFIDENTIAL
+================================================================================

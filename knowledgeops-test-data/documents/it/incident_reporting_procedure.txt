@@ -1,0 +1,77 @@
+================================================================================
+   Acme Technologies - IT Security Incident Response and Reporting Procedure    
+================================================================================
+
+--------------------------------------------------------------------------------
+DOCUMENT METADATA & ADMINISTRATIVE GOVERNANCE
+--------------------------------------------------------------------------------
+Document ID        : DOC-IT-INC-001
+Logical Document ID: DOC-LOG-IT-INC-001
+Organization       : acme-tech-001 (Acme Technologies)
+Department         : Information Technology
+Visibility Scope   : DEPARTMENT_SPECIFIC
+Owner Role         : IT Manager
+Allowed Roles      : IT Manager, Department Manager, Employee
+Version / Lifecycle: v1.0 (ACTIVE)
+Effective From     : 2026-01-01
+Effective Until    : Present (Active)
+Last Reviewed At   : 2026-01-14
+Conflict Group     : None
+Adversarial Target : False
+Description        : IT department incident response playbook detailing P1-P4 triage severities, 15-minute response SLA for critical outages, forensics, and post-mortems.
+--------------------------------------------------------------------------------
+
+DEPARTMENT-SPECIFIC RESTRICTION NOTICE
+--------------------------------------
+DEPARTMENT-SPECIFIC: RESTRICTED TO INFORMATION TECHNOLOGY PERSONNEL AND SECURITY INCIDENT RESPONDERS.
+Contains technical threat classification rubrics, war room communication bridges, and forensic containment protocols.
+
+1. INCIDENT SEVERITY CLASSIFICATION AND SLA MATRIX
+--------------------------------------------------
+All operational glitches and cybersecurity events must be classified into one of four severity levels:
+
+SEVERITY P1 — CRITICAL (EMERGENCY)
+- Definition: Catastrophic disruption of core production software, confirmed breach of client data, active ransomware propagation, or total data center outage.
+- Initial Response SLA: Under fifteen (15) minutes, 24/7/365.
+- Escalation Protocol: Immediate automated paging to CTO, Head of Legal, IT Manager, and CEO. War Room audio bridge established within 20 minutes.
+
+SEVERITY P2 — HIGH
+- Definition: Serious impairment of customer-facing services with partial redundancy operating, localized malware infection on isolated workstations, or failure of secondary firewall.
+- Initial Response SLA: Under one (1) hour.
+- Escalation Protocol: IT Security Lead and affected Engineering Squad Leads notified immediately.
+
+SEVERITY P3 — MEDIUM
+- Definition: Impairment of non-critical internal administrative systems (e.g., cafeteria billing down, internal wiki latency), isolated user login difficulties.
+- Initial Response SLA: Under four (4) business hours.
+
+SEVERITY P4 — LOW
+- Definition: Minor bug tickets, cosmetic portal defects, individual self-service password resets.
+- Initial Response SLA: Within twenty-four (24) business hours.
+
+2. FORENSIC CONTAINMENT AND ERADICATION PROTOCOLS
+-------------------------------------------------
+Upon identification of an active security intrusion:
+1. Network Isolation: Immediately segregate compromised host from network VLAN. Do NOT power off or reboot the machine to preserve volatile RAM memory evidence.
+2. Forensic Imaging: Generate bit-stream forensic memory and disk images using hardware write-blockers.
+3. Credential Invalidation: Revoke compromised API keys, terminate active SSO sessions, and trigger emergency credential rotation across affected infrastructure.
+4. Clean Restoration: Restore affected workloads exclusively from pre-infection immutable backups verified by malware scanning.
+
+3. INCIDENT COMMAND TEAM ROLES AND RESPONSIBILITIES
+---------------------------------------------------
+Command Structure During P1 Incidents:
+- Incident Commander (IC): Leads the investigation, makes authoritative containment calls, and directs triage actions.
+- Technical Lead: Coordinates system diagnostics, network tracing, and code fixes.
+- Scribe: Documents chronological timestamped log of all findings, hypotheses, and actions taken.
+- Communications Lead: Drafts internal executive bulletins and external customer advisory notifications.
+
+4. POST-INCIDENT REVIEW (PIR) AND CORRECTIVE ACTIONS
+----------------------------------------------------
+Within five (5) business days following resolution of any P1 or P2 incident, the Incident Commander must publish a formal Post-Incident Review document. The PIR must include a detailed timeline, root cause analysis based on the 5-Whys methodology, financial and SLA impact analysis, and an action register with assigned deadlines and owners.
+
+5. DOCUMENT GOVERNANCE
+----------------------
+Document ID: DOC-IT-INC-001 | Version: 1.0 | Owner: IT Manager | Effective: 2026-01-01
+
+================================================================================
+END OF DOCUMENT: DOC-IT-INC-001 | ACME TECHNOLOGIES CONFIDENTIAL
+================================================================================
