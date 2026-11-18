@@ -74,9 +74,7 @@ class DocumentService:
             )
             dept = db.scalars(dept_stmt).first()
             if dept is None:
-                raise NotFoundException(
-                    "Department not found in current organization"
-                )
+                raise NotFoundException("Department not found in current organization")
 
             # Admins can upload to any department; otherwise caller must be a member
             if context.role != "organization_admin":

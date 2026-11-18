@@ -9,9 +9,7 @@ from app.core.security import create_access_token, hash_password
 from app.models.organization import Department, Organization
 from app.models.user import OrganizationMembership, User, UserDepartment
 
-DOCX_MIME = (
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-)
+DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 
 def make_valid_pdf_bytes() -> bytes:

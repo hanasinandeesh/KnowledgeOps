@@ -1,4 +1,4 @@
-# Active Task --- Task 004: Document Management & Upload APIs
+# Active Task --- Task 005: Document Ingestion Worker & Text Extraction
 
 **Status:** Completed and verified.\
 **Environment:** Antigravity + Gemini.\
@@ -6,52 +6,56 @@
 
 ## Objective
 
-Implement secure document management and file upload APIs with file content validation (PDF, DOCX, TXT), safe local filesystem persistence, tenant and visibility isolation, document listing with permission filtering, and document archiving for KnowledgeOps.
+Implement a robust, asynchronous background document ingestion worker that safely claims pending jobs from SQLite using atomic leases, extracts and normalizes text from PDF, DOCX, and TXT files, preserves page and section structure in `document_pages`, handles malformed or encrypted documents with controlled errors, and enforces bounded exponential backoff retries without corrupting active document versions.
 
 ## Scope
 
--   Update `backend/pyproject.toml` and `requirements.txt` with `python-multipart>=0.0.9`.
--   Update `backend/app/core/config.py` with `DOCUMENT_STORAGE_PATH`, `MAX_FILE_SIZE_BYTES`, and `ALLOWED_EXTENSIONS`.
--   Update `backend/app/core/exceptions.py` with `PayloadTooLargeException` (HTTP 413) and `UnsupportedMediaTypeException` (HTTP 415).
--   Implement file validator in `backend/app/modules/documents/validator.py` (extension, size, and magic-byte checks for PDF `%PDF-`, DOCX ZIP package with `[Content_Types].xml`, and TXT non-binary UTF-8).
--   Implement local storage service in `backend/app/modules/documents/storage.py` with UUID storage filenames and cleanup on failure.
--   Implement SQLAlchemy models in `backend/app/models/document.py` (`Document`, `DocumentVersion`, `DocumentAccessGrant`, `IngestionJob`).
--   Generate and execute Alembic batch migration `366b3ef58924_document_and_ingestion_models.py`.
--   Implement Pydantic schemas in `backend/app/modules/documents/schemas.py`.
--   Implement business logic and authorization in `backend/app/modules/documents/service.py`:
-    -   Upload authorization rules (organization, department, restricted).
-    -   Transactional write and disk file rollback cleanup.
-    -   Permission-aware document listing and details retrieval.
-    -   Document archiving lifecycle.
--   Implement FastAPI routes in `backend/app/modules/documents/router.py`:
-    -   `POST /api/v1/documents`
-    -   `GET /api/v1/documents`
-    -   `GET /api/v1/documents/{document_id}`
-    -   `POST /api/v1/documents/{document_id}/archive`
--   Register `documents_router` in `backend/app/main.py`.
--   Implement automated test suite in `backend/tests/test_documents.py` (18 comprehensive test cases).
--   Verify all 43 tests pass and `ruff check backend` passes with 0 errors.
+-   Update `backend/requirements.txt` and `backend/pyproject.toml` with `pymupdf>=1.24.0` and `python-docx>=1.1.0`.
+-   Update `backend/app/core/config.py` with worker configuration settings:
+    -   `WORKER_POLL_INTERVAL_SECONDS` (default: 2.0s)
+    -   `WORKER_LEASE_SECONDS` (default: 120s)
+    -   `WORKER_MAX_ATTEMPTS` (default: 3)
+    -   `WORKER_BASE_BACKOFF_SECONDS` (default: 5s)
+-   Update `backend/app/models/document.py`:
+    -   Define `DocumentPage` model (`document_pages` table) with composite uniqueness on `(document_version_id, page_number, id)`.
+    -   Add `next_retry_at` and `last_error_message` to `IngestionJob`.
+    -   Establish relationship between `DocumentVersion` and `DocumentPage`.
+-   Generate and execute Alembic batch migration `fc94e6e785cc_ingestion_worker_and_pages.py`.
+-   Implement extraction architecture under `backend/app/modules/ingestion/`:
+    -   `schemas.py`: `ExtractedPage`, `ExtractedDocument`, and `DocumentExtractionError`.
+    -   `cleaner.py`: `TextCleaner.normalize` (NFKC normalization, control character stripping, excessive newline collapsing, line whitespace trimming) and `validate_non_empty`.
+    -   `extractors/base.py`: Abstract `BaseExtractor` interface.
+    -   `extractors/pdf.py`: `PyMuPDFExtractor` with per-page text extraction, page number preservation, and encrypted PDF detection.
+    -   `extractors/docx.py`: `DocxExtractor` using `python-docx` iterating through body elements in sequential order, extracting headings (`Heading 1`/`Heading 2`), paragraphs, and formatted table rows.
+    -   `extractors/txt.py`: `TxtExtractor` with UTF-8 validation and Markdown heading section splitting.
+    -   `extractors/factory.py`: `ExtractorFactory` with MIME-type and extension-based dispatch.
+    -   `job_queue.py`: `JobQueueService` with race-free atomic SQLite job claiming, lease renewals, crash recovery, page persistence, version activation, and exponential backoff retry scheduling.
+    -   `worker.py`: `IngestionWorker` standalone polling loop, transaction boundary isolation (no DB locks during file reading/extraction), and graceful shutdown on `SIGINT`/`SIGTERM`.
+-   Implement comprehensive test suites:
+    -   `backend/tests/test_text_cleaner.py` (6 unit tests).
+    -   `backend/tests/test_extractors.py` (13 unit tests covering PDF, DOCX, TXT, corrupt files, blank files, password-protected PDFs, and factory dispatch).
+    -   `backend/tests/test_ingestion_worker.py` (10 integration tests covering atomic claiming, concurrency prevention, lease recovery, backoff delays, end-to-end TXT/PDF extraction, terminal failure, retry backoff, max retries, and version preservation).
+-   Verify all 72 backend tests pass and `ruff check backend` / `ruff format --check backend` pass with 0 errors.
 
 ## Explicitly out of scope
 
--   Ingestion background worker processes, text extraction, cleaning, and chunking (Task 005 / Epic 4).
--   ChromaDB vector store and embeddings (Epic 4 / 5).
--   SQLite FTS5 full-text search indexing (Epic 5).
+-   Chunking into retrieval chunks and token counting (Task 018).
+-   Local embedding generation and ChromaDB vector indexing (Task 019/020).
+-   Hybrid search (Epic 5).
 -   Frontend or Docker Compose.
 
 ## Acceptance criteria
 
--   [x] `python-multipart>=0.0.9` added to dependencies.
--   [x] Configuration updated with storage paths and size limits.
--   [x] File validator checks magic bytes for PDF, DOCX, and TXT, rejecting spoofed, corrupt, or empty files.
--   [x] Uploaded files stored outside web roots using safe UUID filenames; raw user paths never used on disk.
--   [x] Internal storage paths and file hashes are never exposed in API client responses.
--   [x] Multipart upload creates `Document`, `DocumentVersion`, and `IngestionJob` returning HTTP 202 `Accepted`.
--   [x] Organization-wide, department-specific, and restricted visibility rules enforced on the backend.
--   [x] Organization admin does not automatically gain access to restricted documents without an explicit grant.
--   [x] Document listing applies server-side permission filtering.
--   [x] Document archiving updates status and excludes document from active retrieval.
--   [x] Database failure during upload cleans up disk files without leaving orphaned files or rows.
--   [x] Comprehensive test suite created (`test_documents.py`) and all 43 backend tests pass.
--   [x] `ruff check backend` passes cleanly with 0 errors.
--   [x] Documentation and `CURRENT_STATUS.md` updated.
+-   [x] `pymupdf>=1.24.0` and `python-docx>=1.1.0` added to dependencies.
+-   [x] Alembic migration `fc94e6e785cc_ingestion_worker_and_pages.py` applied.
+-   [x] Text extractors extract text and preserve page numbers for PDF and headings/sections for DOCX and TXT.
+-   [x] Malformed, corrupt, or encrypted documents are rejected with descriptive, controlled error codes (`CORRUPTED_DOCUMENT`, `ENCRYPTED_PDF`, `EMPTY_EXTRACTED_CONTENT`).
+-   [x] Text normalizer cleans text without altering semantic meaning or headings.
+-   [x] Empty extracted content (0 characters or all whitespace) is treated as a controlled failure.
+-   [x] Worker runs as a separate process and safely claims jobs using atomic SQLite updates without race conditions.
+-   [x] Expired worker leases are automatically recovered.
+-   [x] Bounded retries (3 attempts) with exponential backoff are enforced for transient errors.
+-   [x] Database transactions are kept short and never held open during document file parsing.
+-   [x] Ingestion failure of a new version preserves the previous active version without data loss.
+-   [x] All 72 backend tests pass.
+-   [x] `ruff check backend` and `ruff format --check backend` pass cleanly with 0 errors.

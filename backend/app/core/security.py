@@ -73,4 +73,3 @@ def decode_access_token(token: str) -> dict[str, Any]:
         raise UnauthenticatedException("Invalid token type")
 
     return payload
-

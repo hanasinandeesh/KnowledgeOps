@@ -1,2 +1,1 @@
 """KnowledgeOps backend application package."""
-

@@ -185,6 +185,12 @@ class DocumentVersion(Base):
         back_populates="version",
         cascade="all, delete-orphan",
     )
+    pages: Mapped[list["DocumentPage"]] = relationship(
+        "DocumentPage",
+        back_populates="version",
+        cascade="all, delete-orphan",
+        order_by="DocumentPage.page_number",
+    )
 
 
 class DocumentAccessGrant(Base):
@@ -290,7 +296,13 @@ class IngestionJob(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    next_retry_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+    )
     last_error_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    last_error_message: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -307,4 +319,70 @@ class IngestionJob(Base):
     version: Mapped["DocumentVersion"] = relationship(
         "DocumentVersion",
         back_populates="ingestion_jobs",
+    )
+
+
+class DocumentPage(Base):
+    """Authoritative extracted page or section text for a document version."""
+
+    __tablename__ = "document_pages"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    organization_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    document_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    document_version_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("document_versions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    page_number: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+    section_title: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    text_content: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+    char_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "document_version_id",
+            "page_number",
+            "id",
+            name="uq_document_pages_version_page",
+        ),
+    )
+
+    # Relationships
+    version: Mapped["DocumentVersion"] = relationship(
+        "DocumentVersion",
+        back_populates="pages",
     )

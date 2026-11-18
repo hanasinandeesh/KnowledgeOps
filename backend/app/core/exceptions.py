@@ -172,4 +172,3 @@ def setup_exception_handlers(app: FastAPI) -> None:
             status_code=422,
             details=details if details else None,
         )
-

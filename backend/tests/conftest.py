@@ -60,6 +60,7 @@ def db_session() -> Generator[Session, None, None]:
 @pytest.fixture(scope="function")
 def client(db_session: Session) -> Generator[TestClient, None, None]:
     """TestClient with get_db overridden to use test session."""
+
     def override_get_db() -> Generator[Session, None, None]:
         yield db_session
 
