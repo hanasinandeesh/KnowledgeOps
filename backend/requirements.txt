@@ -14,8 +14,10 @@ pyjwt>=2.8.0
 bcrypt>=4.0.0
 cryptography>=42.0.0
 
-# Document Ingestion & Uploads (Task 004)
+# Document Ingestion & Uploads (Task 004 & Task 005)
 python-multipart>=0.0.9
+pymupdf>=1.24.0
+python-docx>=1.1.0
 
 # Testing and Code Quality
 pytest>=8.0.0

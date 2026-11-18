@@ -49,9 +49,7 @@ def test_create_and_query_organization_and_user(db_session: Session) -> None:
     assert saved_org.id is not None
     assert saved_org.created_at is not None
 
-    saved_user = db_session.scalar(
-        select(User).where(User.email == "alice@acme.com")
-    )
+    saved_user = db_session.scalar(select(User).where(User.email == "alice@acme.com"))
     assert saved_user is not None
     assert saved_user.full_name == "Alice Smith"
 

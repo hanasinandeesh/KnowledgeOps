@@ -73,4 +73,3 @@ class DocumentArchiveResponse(BaseModel):
     status: str
     archived_at: datetime
     message: str = "Document successfully archived"
-

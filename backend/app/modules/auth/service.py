@@ -98,9 +98,7 @@ class AuthService:
         membership = db.scalars(stmt).first()
 
         if membership is None or membership.status != "active":
-            raise ForbiddenException(
-                "User does not have access to this organization"
-            )
+            raise ForbiddenException("User does not have access to this organization")
 
         organization = membership.organization
         if organization is None or organization.status != "active":

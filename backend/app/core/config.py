@@ -64,5 +64,15 @@ class Settings:
     )  # 10 MB default
     ALLOWED_EXTENSIONS: set[str] = {".pdf", ".docx", ".txt"}
 
+    # Ingestion Worker Configuration (Task 005)
+    WORKER_POLL_INTERVAL_SECONDS: float = float(
+        os.getenv("WORKER_POLL_INTERVAL_SECONDS", "2.0")
+    )
+    WORKER_LEASE_SECONDS: int = int(os.getenv("WORKER_LEASE_SECONDS", "120"))
+    WORKER_MAX_ATTEMPTS: int = int(os.getenv("WORKER_MAX_ATTEMPTS", "3"))
+    WORKER_BASE_BACKOFF_SECONDS: int = int(
+        os.getenv("WORKER_BASE_BACKOFF_SECONDS", "5")
+    )
+
 
 settings = Settings()

@@ -25,8 +25,8 @@ evidence justify it.
 -   [x] Task 013: Implement document metadata models (`Document`, `DocumentVersion`, `DocumentAccessGrant`, `IngestionJob`).
 -   [x] Task 014: Implement secure file validation (magic bytes for PDF/DOCX/TXT) and isolated UUID storage.
 -   [x] Task 015: Implement upload API, permission filtering, document archiving, and ingestion job creation (18 automated tests).
--   [ ] Task 016: Implement separate SQLite-backed worker.
--   [ ] Task 017: Implement PDF/DOCX/TXT extraction.
+-   [x] Task 016: Implement separate SQLite-backed worker (atomic claiming, leases, exponential backoff, crash recovery).
+-   [x] Task 017: Implement PDF/DOCX/TXT extraction (PyMuPDF, python-docx, text normalization, DocumentPage persistence).
 -   [ ] Task 018: Implement cleaning and source-aware chunking.
 -   [ ] Task 019: Benchmark and select embedding model.
 -   [ ] Task 020: Implement embedding provider and Chroma indexing.
