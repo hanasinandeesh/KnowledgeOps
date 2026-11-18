@@ -27,10 +27,10 @@ evidence justify it.
 -   [x] Task 015: Implement upload API, permission filtering, document archiving, and ingestion job creation (18 automated tests).
 -   [x] Task 016: Implement separate SQLite-backed worker (atomic claiming, leases, exponential backoff, crash recovery).
 -   [x] Task 017: Implement PDF/DOCX/TXT extraction (PyMuPDF, python-docx, text normalization, DocumentPage persistence).
--   [ ] Task 018: Implement cleaning and source-aware chunking.
--   [ ] Task 019: Benchmark and select embedding model.
--   [ ] Task 020: Implement embedding provider and Chroma indexing.
--   [ ] Task 021: Add idempotency, retries and index reconciliation.
+-   [x] Task 018: Implement cleaning and source-aware chunking (TextChunker with hierarchical splitting and section preservation).
+-   [x] Task 019: Benchmark and select embedding model (Evaluated BGE-small vs MiniLM; selected BAAI/bge-small-en-v1.5).
+-   [x] Task 020: Implement embedding provider and Chroma indexing (LocalSentenceTransformerEmbedding & ChromaVectorStore).
+-   [x] Task 021: Add idempotency, retries and index reconciliation (Deterministic IDs, version transitions, stale vector cleanup).
 
 ## Epic 5 --- Retrieval and RAG
 

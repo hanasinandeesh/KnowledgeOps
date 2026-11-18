@@ -191,6 +191,12 @@ class DocumentVersion(Base):
         cascade="all, delete-orphan",
         order_by="DocumentPage.page_number",
     )
+    chunks: Mapped[list["DocumentChunk"]] = relationship(
+        "DocumentChunk",
+        back_populates="version",
+        cascade="all, delete-orphan",
+        order_by="DocumentChunk.chunk_index",
+    )
 
 
 class DocumentAccessGrant(Base):
@@ -385,4 +391,83 @@ class DocumentPage(Base):
     version: Mapped["DocumentVersion"] = relationship(
         "DocumentVersion",
         back_populates="pages",
+    )
+
+
+class DocumentChunk(Base):
+    """Authoritative chunk text, token count, and metadata stored in SQLite."""
+
+    __tablename__ = "document_chunks"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4()),
+    )
+    organization_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    document_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    document_version_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("document_versions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    department_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("departments.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    chunk_index: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    content: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+    content_hash: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False,
+    )
+    page_number: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+    section_title: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    token_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "document_version_id",
+            "chunk_index",
+            name="uq_document_chunks_version_index",
+        ),
+    )
+
+    # Relationships
+    version: Mapped["DocumentVersion"] = relationship(
+        "DocumentVersion",
+        back_populates="chunks",
     )

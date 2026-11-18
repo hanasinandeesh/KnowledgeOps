@@ -11,6 +11,7 @@ ENV/
 __pycache__/
 *.py[cod]
 *$py.class
+*.egg-info/
 
 # Testing & quality tool caches
 .pytest_cache/

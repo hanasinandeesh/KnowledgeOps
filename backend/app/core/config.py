@@ -74,5 +74,21 @@ class Settings:
         os.getenv("WORKER_BASE_BACKOFF_SECONDS", "5")
     )
 
+    # Embeddings & Vector Indexing Configuration (Task 006)
+    CHROMA_PERSISTENCE_PATH: Path = _resolve_storage_path(
+        os.getenv("CHROMA_PERSISTENCE_PATH", "./data/chroma")
+    )
+    CHROMA_COLLECTION_NAME: str = os.getenv(
+        "CHROMA_COLLECTION_NAME", "knowledgeops_chunks"
+    )
+    EMBEDDING_MODEL_ID: str = os.getenv("EMBEDDING_MODEL_ID", "BAAI/bge-small-en-v1.5")
+    EMBEDDING_CACHE_DIR: Path = _resolve_storage_path(
+        os.getenv("EMBEDDING_CACHE_DIR", "./data/models/embeddings")
+    )
+    CHUNK_TARGET_TOKENS: int = int(os.getenv("CHUNK_TARGET_TOKENS", "500"))
+    CHUNK_OVERLAP_TOKENS: int = int(os.getenv("CHUNK_OVERLAP_TOKENS", "80"))
+    CHUNK_MIN_TOKENS: int = int(os.getenv("CHUNK_MIN_TOKENS", "80"))
+    CHUNK_MAX_TOKENS: int = int(os.getenv("CHUNK_MAX_TOKENS", "700"))
+
 
 settings = Settings()

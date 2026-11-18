@@ -5,7 +5,14 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import and_, or_, select, update
 from sqlalchemy.orm import Session
 
-from app.models.document import Document, DocumentPage, DocumentVersion, IngestionJob
+from app.models.document import (
+    Document,
+    DocumentChunk,
+    DocumentPage,
+    DocumentVersion,
+    IngestionJob,
+)
+from app.modules.indexing.schemas import TextChunk
 from app.modules.ingestion.schemas import ExtractedDocument
 
 logger = logging.getLogger(__name__)
@@ -79,6 +86,140 @@ class JobQueueService:
             IngestionJob.locked_until == lease_until,
         )
         return db.scalars(claimed_stmt).first()
+
+    @classmethod
+    def persist_pages(
+        cls,
+        db: Session,
+        job_id: str,
+        extracted_doc: ExtractedDocument,
+    ) -> list[DocumentPage]:
+        """Persist extracted document pages in SQLite under a short transaction."""
+        job = db.get(IngestionJob, job_id)
+        if not job:
+            logger.error(f"Cannot persist pages for missing ingestion job: {job_id}")
+            return []
+
+        version = db.get(DocumentVersion, job.document_version_id)
+        if not version:
+            logger.error(
+                f"Missing document version {job.document_version_id} for job {job_id}"
+            )
+            return []
+
+        now = datetime.now(timezone.utc)
+        # Delete existing pages for this version if re-running
+        db.query(DocumentPage).filter(
+            DocumentPage.document_version_id == version.id
+        ).delete()
+
+        created_pages: list[DocumentPage] = []
+        for page in extracted_doc.pages:
+            db_page = DocumentPage(
+                id=str(uuid.uuid4()),
+                organization_id=job.organization_id,
+                document_id=version.document_id,
+                document_version_id=version.id,
+                page_number=page.page_number,
+                section_title=page.section_title,
+                text_content=page.text,
+                char_count=page.char_count,
+                created_at=now,
+            )
+            db.add(db_page)
+            created_pages.append(db_page)
+
+        db.commit()
+        return created_pages
+
+    @classmethod
+    def complete_job_with_chunks(
+        cls,
+        db: Session,
+        job_id: str,
+        chunks: list[TextChunk],
+    ) -> list[str]:
+        """Persist chunks, activate version, mark document active, and complete job.
+
+        Returns IDs of superseded document versions whose vectors can be purged.
+        """
+        job = db.get(IngestionJob, job_id)
+        if not job:
+            logger.error(f"Cannot complete missing ingestion job: {job_id}")
+            return []
+
+        version = db.get(DocumentVersion, job.document_version_id)
+        if not version:
+            logger.error(
+                f"Missing document version {job.document_version_id} for job {job_id}"
+            )
+            return []
+
+        document = db.get(Document, version.document_id)
+        now = datetime.now(timezone.utc)
+
+        # Remove existing chunks for this version if re-running
+        db.query(DocumentChunk).filter(
+            DocumentChunk.document_version_id == version.id
+        ).delete()
+
+        # Insert chunks into SQLite authoritative table
+        for c in chunks:
+            db_chunk = DocumentChunk(
+                id=str(uuid.uuid4()),
+                organization_id=job.organization_id,
+                document_id=version.document_id,
+                document_version_id=version.id,
+                department_id=document.department_id if document else None,
+                chunk_index=c.chunk_index,
+                content=c.content,
+                content_hash=c.content_hash,
+                page_number=c.page_number,
+                section_title=c.section_title,
+                token_count=c.token_count,
+                created_at=now,
+            )
+            db.add(db_chunk)
+
+        # Identify and deactivate older versions of the same document
+        superseded_version_ids = list(
+            db.scalars(
+                select(DocumentVersion.id).where(
+                    DocumentVersion.document_id == version.document_id,
+                    DocumentVersion.id != version.id,
+                )
+            ).all()
+        )
+        if superseded_version_ids:
+            db.execute(
+                update(DocumentVersion)
+                .where(DocumentVersion.id.in_(superseded_version_ids))
+                .values(is_current=False)
+            )
+
+        # Activate current version
+        version.is_current = True
+        version.processing_status = "completed"
+
+        # If document is still pending (initial version upload), activate document
+        if document and document.status == "pending":
+            document.status = "active"
+            document.updated_at = now
+
+        # Complete job
+        job.status = "completed"
+        job.locked_by = None
+        job.locked_until = None
+        job.last_error_code = None
+        job.last_error_message = None
+        job.updated_at = now
+
+        db.commit()
+        logger.info(
+            f"Completed job {job_id} for version {version.id} "
+            f"({len(chunks)} chunks persisted and activated)"
+        )
+        return superseded_version_ids
 
     @classmethod
     def complete_job(
