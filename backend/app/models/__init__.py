@@ -2,6 +2,7 @@ from app.infrastructure.database.base import Base
 from app.models.document import (
     Document,
     DocumentAccessGrant,
+    DocumentChunk,
     DocumentPage,
     DocumentVersion,
     IngestionJob,
@@ -21,4 +22,5 @@ __all__ = [
     "DocumentAccessGrant",
     "IngestionJob",
     "DocumentPage",
+    "DocumentChunk",
 ]

@@ -11,7 +11,9 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.infrastructure.database.session import SessionLocal
-from app.models.document import DocumentVersion
+from app.models.document import Document, DocumentVersion
+from app.modules.indexing.schemas import IndexingError
+from app.modules.indexing.service import IndexingService
 from app.modules.ingestion.extractors.factory import ExtractorFactory
 from app.modules.ingestion.job_queue import JobQueueService
 from app.modules.ingestion.schemas import DocumentExtractionError
@@ -23,6 +25,10 @@ TRANSIENT_ERROR_CODES = {
     "STORAGE_FILE_READ_ERROR",
     "TRANSIENT_IO_ERROR",
     "UNEXPECTED_ERROR",
+    "EMBEDDING_GENERATION_ERROR",
+    "VECTOR_UPSERT_ERROR",
+    "INDEXING_COUNT_MISMATCH",
+    "VECTOR_STORE_INIT_ERROR",
 }
 
 
@@ -36,6 +42,7 @@ class IngestionWorker:
         lease_seconds: int | None = None,
         base_backoff_seconds: int | None = None,
         session_factory: Callable[[], Session] | None = None,
+        indexing_service: IndexingService | None = None,
     ) -> None:
         self.worker_id = worker_id or f"worker-{os.getpid()}-{uuid.uuid4().hex[:6]}"
         self.poll_interval = poll_interval or settings.WORKER_POLL_INTERVAL_SECONDS
@@ -44,6 +51,7 @@ class IngestionWorker:
             base_backoff_seconds or settings.WORKER_BASE_BACKOFF_SECONDS
         )
         self.session_factory = session_factory or SessionLocal
+        self.indexing_service = indexing_service or IndexingService()
         self.running = False
 
     def process_one_job(self) -> bool:
@@ -64,6 +72,7 @@ class IngestionWorker:
 
             job_id = job.id
             version_id = job.document_version_id
+            org_id = job.organization_id
             version = claim_db.get(DocumentVersion, version_id)
             if not version:
                 logger.error(
@@ -77,6 +86,11 @@ class IngestionWorker:
                     is_retryable=False,
                 )
                 return True
+
+            doc_id = version.document_id
+            document = claim_db.get(Document, doc_id)
+            visibility = document.visibility if document else "organization"
+            dept_id = document.department_id if document else None
 
             storage_path_str = version.storage_path
             mime_type = version.mime_type
@@ -127,16 +141,16 @@ class IngestionWorker:
                 fail_db.close()
             return True
 
-        # Step 3: Persist extracted pages and complete job in a short DB transaction
-        complete_db = self.session_factory()
+        # Step 3: Persist extracted pages in a short DB transaction
+        persist_db = self.session_factory()
         try:
-            JobQueueService.complete_job(
-                db=complete_db,
+            JobQueueService.persist_pages(
+                db=persist_db,
                 job_id=job_id,
                 extracted_doc=extracted_doc,
             )
         except Exception as e:
-            logger.exception(f"Database error completing job {job_id}: {e}")
+            logger.exception(f"Database error persisting pages for job {job_id}: {e}")
             fail_db = self.session_factory()
             try:
                 JobQueueService.fail_job(
@@ -149,8 +163,91 @@ class IngestionWorker:
                 )
             finally:
                 fail_db.close()
+            return True
+        finally:
+            persist_db.close()
+
+        # Step 4: Chunk, embed, and index into ChromaDB outside any DB transaction
+        try:
+            chunks, _ = self.indexing_service.process_and_index_pages(
+                pages=extracted_doc.pages,
+                organization_id=org_id,
+                document_id=doc_id,
+                document_version_id=version_id,
+                visibility=visibility,
+                department_id=dept_id,
+            )
+        except IndexingError as e:
+            logger.error(f"Indexing error on job {job_id}: [{e.code}] {e.message}")
+            self.indexing_service.purge_version_vectors(version_id)
+            is_retryable = e.code in TRANSIENT_ERROR_CODES
+            fail_db = self.session_factory()
+            try:
+                JobQueueService.fail_job(
+                    db=fail_db,
+                    job_id=job_id,
+                    error_code=e.code,
+                    error_message=e.message,
+                    is_retryable=is_retryable,
+                    base_backoff_seconds=self.base_backoff_seconds,
+                )
+            finally:
+                fail_db.close()
+            return True
+        except Exception as e:
+            logger.exception(f"Unexpected indexing error on job {job_id}: {e}")
+            self.indexing_service.purge_version_vectors(version_id)
+            fail_db = self.session_factory()
+            try:
+                JobQueueService.fail_job(
+                    db=fail_db,
+                    job_id=job_id,
+                    error_code="INDEXING_ERROR",
+                    error_message=str(e),
+                    is_retryable=True,
+                    base_backoff_seconds=self.base_backoff_seconds,
+                )
+            finally:
+                fail_db.close()
+            return True
+
+        # Step 5: Persist chunks and complete job in a short DB transaction
+        complete_db = self.session_factory()
+        superseded_version_ids: list[str] = []
+        try:
+            superseded_version_ids = JobQueueService.complete_job_with_chunks(
+                db=complete_db,
+                job_id=job_id,
+                chunks=chunks,
+            )
+        except Exception as e:
+            logger.exception(f"Database error completing job {job_id}: {e}")
+            self.indexing_service.purge_version_vectors(version_id)
+            fail_db = self.session_factory()
+            try:
+                JobQueueService.fail_job(
+                    db=fail_db,
+                    job_id=job_id,
+                    error_code="DATABASE_LOCKED",
+                    error_message=f"Failed to persist extracted chunks: {e}",
+                    is_retryable=True,
+                    base_backoff_seconds=self.base_backoff_seconds,
+                )
+            finally:
+                fail_db.close()
+            return True
         finally:
             complete_db.close()
+
+        # Step 6: Purge stale vectors for superseded versions outside DB transaction
+        for old_version_id in superseded_version_ids:
+            try:
+                self.indexing_service.purge_version_vectors(old_version_id)
+            except Exception as e:
+                logger.warning(
+                    f"Failed to purge stale vectors for superseded version "
+                    f"'{old_version_id}': {e}"
+                )
 
         return True
 

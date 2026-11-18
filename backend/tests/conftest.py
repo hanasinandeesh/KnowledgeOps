@@ -25,6 +25,30 @@ def test_storage_dir(tmp_path) -> Generator[None, None, None]:
     settings.DOCUMENT_STORAGE_PATH = original_path
 
 
+@pytest.fixture(scope="function", autouse=True)
+def test_indexing_service_mock(tmp_path, monkeypatch) -> None:
+    """Ensure tests run with fast local mock embeddings and isolated ChromaDB."""
+    from app.modules.indexing.embeddings import DeterministicMockEmbeddingProvider
+    from app.modules.indexing.service import IndexingService
+    from app.modules.indexing.vector_store import ChromaVectorStore
+    from app.modules.ingestion import worker
+
+    test_chroma = ChromaVectorStore(
+        persist_path=tmp_path / "chroma_test_store",
+        collection_name="test_default_collection",
+    )
+    test_embeddings = DeterministicMockEmbeddingProvider(dimension=384)
+    default_service = IndexingService(
+        embedding_provider=test_embeddings,
+        vector_store=test_chroma,
+    )
+    monkeypatch.setattr(
+        worker,
+        "IndexingService",
+        lambda *args, **kwargs: default_service,
+    )
+
+
 @pytest.fixture(scope="function")
 def db_session() -> Generator[Session, None, None]:
     """Provides a fresh, isolated in-memory SQLite database session."""

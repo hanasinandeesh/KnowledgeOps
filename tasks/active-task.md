@@ -1,4 +1,4 @@
-# Active Task --- Task 005: Document Ingestion Worker & Text Extraction
+# Active Task --- Task 006: Embeddings & Vector Indexing
 
 **Status:** Completed and verified.\
 **Environment:** Antigravity + Gemini.\
@@ -6,56 +6,54 @@
 
 ## Objective
 
-Implement a robust, asynchronous background document ingestion worker that safely claims pending jobs from SQLite using atomic leases, extracts and normalizes text from PDF, DOCX, and TXT files, preserves page and section structure in `document_pages`, handles malformed or encrypted documents with controlled errors, and enforces bounded exponential backoff retries without corrupting active document versions.
+Transform successfully extracted document pages from Task 005 into structure-aware text chunks and vector embeddings, stored authoritatively in SQLite (`document_chunks`) and indexed in a persistent local ChromaDB instance, with atomic version transitions and safe error recovery.
 
 ## Scope
 
--   Update `backend/requirements.txt` and `backend/pyproject.toml` with `pymupdf>=1.24.0` and `python-docx>=1.1.0`.
--   Update `backend/app/core/config.py` with worker configuration settings:
-    -   `WORKER_POLL_INTERVAL_SECONDS` (default: 2.0s)
-    -   `WORKER_LEASE_SECONDS` (default: 120s)
-    -   `WORKER_MAX_ATTEMPTS` (default: 3)
-    -   `WORKER_BASE_BACKOFF_SECONDS` (default: 5s)
--   Update `backend/app/models/document.py`:
-    -   Define `DocumentPage` model (`document_pages` table) with composite uniqueness on `(document_version_id, page_number, id)`.
-    -   Add `next_retry_at` and `last_error_message` to `IngestionJob`.
-    -   Establish relationship between `DocumentVersion` and `DocumentPage`.
--   Generate and execute Alembic batch migration `fc94e6e785cc_ingestion_worker_and_pages.py`.
--   Implement extraction architecture under `backend/app/modules/ingestion/`:
-    -   `schemas.py`: `ExtractedPage`, `ExtractedDocument`, and `DocumentExtractionError`.
-    -   `cleaner.py`: `TextCleaner.normalize` (NFKC normalization, control character stripping, excessive newline collapsing, line whitespace trimming) and `validate_non_empty`.
-    -   `extractors/base.py`: Abstract `BaseExtractor` interface.
-    -   `extractors/pdf.py`: `PyMuPDFExtractor` with per-page text extraction, page number preservation, and encrypted PDF detection.
-    -   `extractors/docx.py`: `DocxExtractor` using `python-docx` iterating through body elements in sequential order, extracting headings (`Heading 1`/`Heading 2`), paragraphs, and formatted table rows.
-    -   `extractors/txt.py`: `TxtExtractor` with UTF-8 validation and Markdown heading section splitting.
-    -   `extractors/factory.py`: `ExtractorFactory` with MIME-type and extension-based dispatch.
-    -   `job_queue.py`: `JobQueueService` with race-free atomic SQLite job claiming, lease renewals, crash recovery, page persistence, version activation, and exponential backoff retry scheduling.
-    -   `worker.py`: `IngestionWorker` standalone polling loop, transaction boundary isolation (no DB locks during file reading/extraction), and graceful shutdown on `SIGINT`/`SIGTERM`.
+-   Update `backend/requirements.txt` and `backend/pyproject.toml` with `sentence-transformers>=3.0.0` and `chromadb>=0.5.0`.
+-   Update `backend/app/core/config.py` with indexing configurations:
+    -   `CHROMA_PERSISTENCE_PATH` (default: `./data/chroma`)
+    -   `CHROMA_COLLECTION_NAME` (default: `knowledgeops_chunks`)
+    -   `EMBEDDING_MODEL_ID` (default: `BAAI/bge-small-en-v1.5`)
+    -   `EMBEDDING_CACHE_DIR` (default: `./data/models/embeddings`)
+    -   `CHUNK_TARGET_TOKENS` (default: 500)
+    -   `CHUNK_OVERLAP_TOKENS` (default: 80)
+    -   `CHUNK_MIN_TOKENS` (default: 80)
+    -   `CHUNK_MAX_TOKENS` (default: 700)
+-   Update `backend/app/models/document.py` and `backend/app/models/__init__.py`:
+    -   Define `DocumentChunk` model (`document_chunks` table) with foreign keys, indexes, and unique constraint `(document_version_id, chunk_index)`.
+    -   Establish relationship between `DocumentVersion` and `DocumentChunk`.
+-   Generate and execute Alembic batch migration `661098a376d0_document_chunks_model.py`.
+-   Implement indexing architecture under `backend/app/modules/indexing/`:
+    -   `schemas.py`: `TextChunk`, `ChunkMetadata`, `IndexingResult`, and `IndexingError`.
+    -   `chunker.py`: `TextChunker` with structure-aware hierarchical splitting (headings -> paragraphs -> sentences), contextual section prefixing, exact token counting, and small trailing chunk merging.
+    -   `embeddings.py`: `BaseEmbeddingProvider`, `LocalSentenceTransformerEmbedding` (lazy model initialization, normalized embeddings, CPU execution), and `DeterministicMockEmbeddingProvider`.
+    -   `vector_store.py`: `BaseVectorStore`, `ChromaVectorStore` (persistent client, cosine distance metric, batched upsert, version deletion, count verification).
+    -   `service.py`: `IndexingService` coordinating chunk generation, embedding, ChromaDB upsert, verification, and vector purging.
+-   Integrate indexing into `JobQueueService` and `IngestionWorker`:
+    -   Step 1: Claim job (atomic SQLite lease).
+    -   Step 2: Extract content outside DB locks.
+    -   Step 3: Persist extracted pages in SQLite.
+    -   Step 4: Chunk, embed, and index into ChromaDB via `IndexingService` outside DB locks.
+    -   Step 5: Persist `DocumentChunk` records, activate current version, deactivate older versions, mark document active, and complete job.
+    -   On failure: purge partial version vectors from ChromaDB and schedule retry or mark failed without touching previous active version.
 -   Implement comprehensive test suites:
-    -   `backend/tests/test_text_cleaner.py` (6 unit tests).
-    -   `backend/tests/test_extractors.py` (13 unit tests covering PDF, DOCX, TXT, corrupt files, blank files, password-protected PDFs, and factory dispatch).
-    -   `backend/tests/test_ingestion_worker.py` (10 integration tests covering atomic claiming, concurrency prevention, lease recovery, backoff delays, end-to-end TXT/PDF extraction, terminal failure, retry backoff, max retries, and version preservation).
--   Verify all 72 backend tests pass and `ruff check backend` / `ruff format --check backend` pass with 0 errors.
-
-## Explicitly out of scope
-
--   Chunking into retrieval chunks and token counting (Task 018).
--   Local embedding generation and ChromaDB vector indexing (Task 019/020).
--   Hybrid search (Epic 5).
--   Frontend or Docker Compose.
+    -   `backend/tests/test_chunker.py` (5 unit tests).
+    -   `backend/tests/test_embeddings.py` (4 unit tests).
+    -   `backend/tests/test_vector_store.py` (5 unit tests, including restart persistence).
+    -   `backend/tests/test_indexing_pipeline.py` (5 end-to-end integration tests, including stale V1 vector cleanup on V2 activation, embedding retry recovery without duplicates, and Chroma count-mismatch recovery).
+-   Configure editable backend packaging (`[build-system]` and `[tool.setuptools.packages.find]` in `backend/pyproject.toml`, `prepend_sys_path = %(here)s` in `backend/alembic.ini`) so `app` imports cleanly from any working directory.
+-   Verify all 91 backend tests pass with 0 warnings and `ruff check backend` / `ruff format --check backend` pass with 0 errors.
 
 ## Acceptance criteria
 
--   [x] `pymupdf>=1.24.0` and `python-docx>=1.1.0` added to dependencies.
--   [x] Alembic migration `fc94e6e785cc_ingestion_worker_and_pages.py` applied.
--   [x] Text extractors extract text and preserve page numbers for PDF and headings/sections for DOCX and TXT.
--   [x] Malformed, corrupt, or encrypted documents are rejected with descriptive, controlled error codes (`CORRUPTED_DOCUMENT`, `ENCRYPTED_PDF`, `EMPTY_EXTRACTED_CONTENT`).
--   [x] Text normalizer cleans text without altering semantic meaning or headings.
--   [x] Empty extracted content (0 characters or all whitespace) is treated as a controlled failure.
--   [x] Worker runs as a separate process and safely claims jobs using atomic SQLite updates without race conditions.
--   [x] Expired worker leases are automatically recovered.
--   [x] Bounded retries (3 attempts) with exponential backoff are enforced for transient errors.
--   [x] Database transactions are kept short and never held open during document file parsing.
--   [x] Ingestion failure of a new version preserves the previous active version without data loss.
--   [x] All 72 backend tests pass.
--   [x] `ruff check backend` and `ruff format --check backend` pass cleanly with 0 errors.
+- [x] `sentence-transformers>=3.0.0` and `chromadb>=0.5.0` added to dependencies.
+- [x] Alembic migration `661098a376d0_document_chunks_model.py` applied.
+- [x] Text chunking preserves page numbers, section titles, and hierarchical headers.
+- [x] Local embeddings generated using 384-dimensional model (`BAAI/bge-small-en-v1.5`).
+- [x] ChromaDB persists vectors to disk with deterministic chunk IDs.
+- [x] SQLite remains authoritative source for document and chunk metadata.
+- [x] Complete worker pipeline links extraction -> chunking -> embedding -> indexing -> verification -> activation -> stale version vector purge.
+- [x] Ingestion failure of a new version leaves the active version untouched and cleans up orphaned vectors.
+- [x] All 91 backend tests pass with 0 warnings.
+- [x] `ruff check backend` and `ruff format --check backend` pass cleanly with 0 errors.
